@@ -28,4 +28,3 @@ In the second box, you should write address where you want to save the project.
 
 'Proje türü' and 'Proje Numarası' are explained in 'Kod Macro.docx'.
 
-![image](https://user-images.githubusercontent.com/41550105/48916182-5bf1a880-ee92-11e8-9b17-41042e4dfae3.png)
