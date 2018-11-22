@@ -1,0 +1,222 @@
+Dim swApp As SldWorks.SldWorks
+Dim swModelDoc As SldWorks.ModelDoc2
+Dim swModelDocExt As SldWorks.ModelDocExtension
+Dim swModel As SldWorks.ModelDoc2
+Dim rootNode As SldWorks.TreeControlItem
+Dim swPackAndGo As SldWorks.PackAndGo
+Dim openFile As String
+Dim pgFileNames As Variant
+Dim pgFileStatus As Variant
+Dim pgDocumentStatus As Variant
+Dim status As Boolean
+Dim warnings As Long
+Dim errors As Long
+Dim i As Long
+Dim namesCount As Long
+Dim myPath As String
+Dim statuses As Variant
+Dim substrings() As String
+Dim endName() As String
+Dim filter As Boolean
+Dim j As Integer
+Dim traverseLevel As Integer
+Dim parentName As String
+Dim newName As String
+Dim topIndex As Integer
+Dim lastName() As String
+Dim Names() As String
+Dim numNames() As String
+Dim rightStr As String
+Dim count As Integer
+Dim k As Integer
+Dim p As Integer
+Dim drawing As Boolean
+Dim checkName() As String
+Dim son() As String
+Private Sub OptionButton1_Click()
+drawing = True
+End Sub
+Private Sub CommandButton1_Click()
+Set swApp = Application.SldWorks
+Set swModel = swApp.ActiveDoc
+
+Set rootNode = swModel.FeatureManager.GetFeatureTreeRootItem()
+count = 0
+k = 0
+p = 0
+' Open assembly
+openFile = TextBox1 & ".sldasm"
+Set swModelDoc = swApp.OpenDoc6(openFile, swDocASSEMBLY, swOpenDocOptions_Silent, "", errors, warnings)
+Set swModelDocExt = swModelDoc.Extension
+Set swModel = swApp.ActiveDoc
+Set rootNode = swModel.FeatureManager.GetFeatureTreeRootItem()
+
+
+' Get Pack and Go object
+Debug.Print "Pack and Go"
+Set swPackAndGo = swModelDocExt.GetPackAndGo
+
+' Include any drawings, SOLIDWORKS Simulation results, and SOLIDWORKS Toolbox components
+swPackAndGo.IncludeDrawings = drawing
+Debug.Print "  Include drawings: " & swPackAndGo.IncludeDrawings
+' Get number of documents in assembly
+namesCount = swPackAndGo.GetDocumentNamesCount
+Debug.Print "  Number of model documents: " & namesCount
+
+
+ReDim lastName(namesCount) As String
+ReDim Names(namesCount) As String
+ReDim numNames(namesCount) As String
+ReDim checkName(namesCount) As String
+If Not rootNode Is Nothing Then
+        TraverseTree rootNode
+End If
+
+' Get current save-to paths and filenames of the assembly's documents
+status = swPackAndGo.GetDocumentSaveToNames(pgFileNames, pgFileStatus)
+Debug.Print ""
+Debug.Print "  Current default save-to filenames: "
+checkName = Split(TextBox1, "\")
+If (Not (IsEmpty(pgFileNames))) Then
+    For i = 0 To UBound(pgFileNames)
+        substrings = Split(pgFileNames(i), "\")
+        Debug.Print UCase(substrings(UBound(substrings)))
+        endName = Split(substrings(UBound(substrings)), ".")
+        filter = False
+        If (LCase(substrings(UBound(substrings) - 1))) = LCase(checkName(UBound(checkName) - 1)) Then
+            filter = False
+        Else
+            filter = True
+        End If
+        For j = 0 To UBound(substrings)
+            If (substrings(j) = "diger") Then
+                filter = True
+            End If
+        Next j
+        If (Not (filter = True)) Then
+            For k = 0 To UBound(Names)
+                If InStr(LCase(Names(k)), endName(LBound(endName))) <> 0 Then
+                    If (endName(UBound(endName)) = "slddrw") Then
+                        For j = 0 To UBound(Names)
+                            If InStr(Names(j), endName(LBound(endName))) <> 0 Then
+                                lastName(i) = numNames(k)
+                                Exit For
+                            End If
+                        Next j
+                    Else
+                        lastName(i) = numNames(k)
+                    End If
+                    If (endName(UBound(endName)) = "sldprt") Then
+                            lastName(i) = Left(lastName(i), Len(lastName(i)) - 3)
+                    End If
+                    Exit For
+                End If
+            Next k
+            pgFileNames(i) = Replace(pgFileNames(i), substrings(UBound(substrings)), lastName(i) & "." & endName(UBound(endName)))
+            Debug.Print pgFileNames(i)
+        End If
+    Next i
+End If
+swPackAndGo.SetDocumentSaveToNames (pgFileNames)
+' Set folder where to save the files
+myPath = TextBox2
+status = swPackAndGo.SetSaveToName(True, myPath)
+' Flatten the Pack and Go folder structure; save all files to the root directory
+swPackAndGo.FlattenToSingleFolder = True
+'Pack and Go
+statuses = swModelDocExt.SavePackAndGo(swPackAndGo)
+End Sub
+Private Sub TraverseTree(node As SldWorks.TreeControlItem)
+
+    Dim childNode As SldWorks.TreeControlItem
+    Dim componentNode As SldWorks.Component2
+    Dim nodeObjectType As Long
+    Dim nodeObject As Object
+    Dim i As Integer
+    Dim displayNodeInfo As Boolean
+    Dim compName As String
+    displayNodeInfo = False
+    nodeObjectType = node.ObjectType
+    Set nodeObject = node.Object
+    Select Case nodeObjectType
+        Case SwConst.swTreeControlItemType_e.swFeatureManagerItem_Feature:
+        displayNodeInfo = False
+        Case SwConst.swTreeControlItemType_e.swFeatureManagerItem_Component:
+            Debug.Print traverseLevel & "c:" & count
+            son = Split(Names(k - 1), "<")
+            If InStr(node.Text, son(LBound(son))) <> 1 Then
+            If InStr(node.Text, projeType & " " & projeNum) <> 0 Then
+             Debug.Print traverseLevel & "c:" & count
+            If (traverseLevel = count) Then
+                parentName = Left(parentName, Len(parentName) - 2)
+                
+                If (Right(parentName, 3) > 8) Then
+    
+                rightStr = Format(Right(parentName, 3) + 1, "00")
+                parentName = Left(parentName, Len(parentName) - 3) & rightStr
+                newName = parentName & Format(topIndex, " 00")
+                
+                Else
+                
+                rightStr = Format(Right(parentName, 2) + 1, "0")
+                parentName = Left(parentName, Len(parentName) - 2) & rightStr
+                newName = parentName & Format(topIndex, " 00")
+                 End If
+            ElseIf (traverseLevel < count) Then
+                For i = 0 To traverseLevel
+                    parentName = Left(parentName, Len(parentName) - 3)
+                Next i
+                rightStr = Format(Right(parentName, 2) + 1, " 00")
+                parentName = Left(parentName, Len(parentName) - 3) & rightStr
+                newName = parentName & Format(topIndex, " 00")
+               
+            Else
+                rightStr = Format(Right(parentName, 2) + 1, "00")
+                Debug.Print rightStr
+                parentName = Left(parentName, Len(parentName) - 2) & rightStr
+                newName = parentName & Format(topIndex, " 00")
+            
+            End If
+            parentName = newName
+            count = traverseLevel
+            displayNodeInfo = True
+            End If
+            End If
+            If Not nodeObject Is Nothing Then
+                Set componentNode = nodeObject
+                compName = componentNode.Name2
+                If (compName = "") Then
+                    compName = "???"
+                End If
+            End If
+    
+        Case Else:
+            If nodeObject Is Nothing Then
+                If (traverseLevel = 0) Then
+                    parentName = projeType & " " & projeNum & " 00"
+                    Debug.Print parentName & "----" & node.Text
+                    k = 0
+                    numNames(k) = parentName
+                    Names(k) = node.Text
+                    k = k + 1
+                    displayNodeInfo = False
+                End If
+            End If
+    End Select
+    traverseLevel = traverseLevel + 1
+    Set childNode = node.GetFirstChild()
+    While Not childNode Is Nothing
+          TraverseTree childNode
+        If (displayNodeInfo) Then
+        Debug.Print "newName" & newName & "----" & node.Text
+        numNames(k) = newName
+        Names(k) = node.Text
+        k = k + 1
+        End If
+        displayNodeInfo = False
+        Set childNode = childNode.GetNext
+    Wend
+    traverseLevel = traverseLevel - 1
+End Sub
+
+
