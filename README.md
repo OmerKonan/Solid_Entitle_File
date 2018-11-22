@@ -1,20 +1,19 @@
 Solid_Entitle_File
 
-With this macro, You can save your project as a rule that explains -in Kod Macro.docx file.
+With this macro, You can save your project as a rule, explanation is in Kod Macro.docx file.
 
-While creating ne machine, engineer give a name randomly because of they cannot predict next part.
+While Engineers building a new machine ,they can't predict new parts,for this reason they give names randomly.
 
-They working on project and entitle part randomly. when project's done, they rename all parts.
+When project's done, they rename all parts.
 
-Sometimes,machines have thousands part and entitling is large workload. Engineers spend times for that.
+Sometimes,machines have thousands part,so entitling is large workload. Engineers spend a lot times for that.
 
-So, this aplication  entitles all parts as a rule.Moreover, it pays attention the Feature Manager Design Tree(Hierarcy bitween parts)
-
+So, this application entitles all parts as a rule.Moreover, it pays attention to the Feature Manager Design Tree(Hierarchy between parts)
 For example,
 
 ![image](https://user-images.githubusercontent.com/41550105/48915613-601cc680-ee90-11e8-9742-672a016b94c6.png)
 
-In this project entitle parts like that;
+In this project , named parts like that;
 
 ![image](https://user-images.githubusercontent.com/41550105/48915646-86dafd00-ee90-11e8-82d8-dc9badf18c62.png)
 
